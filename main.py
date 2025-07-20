@@ -1,10 +1,11 @@
 from pet.rabbit import Rabbit
 
 def main():
-    rabbit = Rabbit(name="兔兔")
+    name = input("请给你的兔子起个名字（默认 兔兔）：").strip() or "兔兔"
+    rabbit = Rabbit(name=name)
 
     print(f"\n欢迎回来，舰长Music！我是你的电子宠物 {rabbit.name} 🐰\n")
-    print("你可以输入以下指令：喂食 / 抚摸 / 睡觉 / 状态 / 退出")
+    print("你可以输入以下指令：喂食 / 抚摸 / 玩耍 / 睡觉 / 改名 / 状态 / 退出")
 
     while True:
         command = input("请输入指令：").strip()
@@ -12,8 +13,16 @@ def main():
             rabbit.feed()
         elif command == "抚摸":
             rabbit.pet()
+        elif command == "玩耍":
+            rabbit.play()
         elif command == "睡觉":
             rabbit.sleep()
+        elif command == "改名":
+            new_name = input("新的名字：").strip()
+            if new_name:
+                rabbit.rename(new_name)
+            else:
+                print("名字不能为空哦！")
         elif command == "状态":
             rabbit.status()
         elif command == "退出":
