@@ -18,5 +18,16 @@ class Rabbit:
         self.energy = min(100, self.energy + 20)
         print(f"{self.name}进入梦乡……能量值恢复到：{self.energy}")
 
+    def play(self):
+        """Play with the rabbit to increase happiness but consume energy."""
+        if self.energy <= 10:
+            print(f"{self.name}太累了，想要休息一下……能量值：{self.energy}")
+        else:
+            self.happiness += 15
+            self.energy = max(0, self.energy - 10)
+            print(
+                f"{self.name}快乐地和你玩耍！开心值：{self.happiness}，能量值：{self.energy}"
+            )
+
     def status(self):
         print(f"🐰 {self.name} 状态：饥饿值={self.hunger}，开心值={self.happiness}，能量值={self.energy}")
