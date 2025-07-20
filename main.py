@@ -4,7 +4,7 @@ def main():
     rabbit = Rabbit(name="兔兔")
 
     print(f"\n欢迎回来，舰长Music！我是你的电子宠物 {rabbit.name} 🐰\n")
-    print("你可以输入以下指令：喂食 / 抚摸 / 玩耍 / 睡觉 / 状态 / 退出")
+    print("你可以输入以下指令：喂食 / 抚摸 / 玩耍 / 命名 / 睡觉 / 状态 / 退出")
 
     while True:
         command = input("请输入指令：").strip()
@@ -15,7 +15,13 @@ def main():
         elif command == "玩耍":
             rabbit.play()
         elif command == "帮助":
-            print("可用指令：喂食 / 抚摸 / 玩耍 / 睡觉 / 状态 / 退出")
+            print("可用指令：喂食 / 抚摸 / 玩耍 / 命名 / 睡觉 / 状态 / 退出")
+        elif command == "命名":
+            new_name = input("给兔兔起个名字吧：").strip()
+            if new_name:
+                rabbit.rename(new_name)
+            else:
+                print("名字不能为空哦~")
         elif command == "睡觉":
             rabbit.sleep()
         elif command == "状态":

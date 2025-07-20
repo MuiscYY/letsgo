@@ -18,6 +18,12 @@ class Rabbit:
         self.energy = min(100, self.energy + 20)
         print(f"{self.name}进入梦乡……能量值恢复到：{self.energy}")
 
+    def rename(self, new_name: str):
+        """Rename the rabbit."""
+        old_name = self.name
+        self.name = new_name
+        print(f"{old_name}现在叫做{self.name}，请多指教！")
+
     def play(self):
         """Play with the rabbit to increase happiness but consume energy."""
         if self.energy <= 10:
