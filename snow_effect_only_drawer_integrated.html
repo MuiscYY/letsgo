@@ -341,15 +341,21 @@
         return w/h;
       }
 
-      toggleCrop.addEventListener('click',()=>{
+      function exitCropMode(){
         if(cropper){
           cropper.destroy();
           cropper=null;
-          cropImg.style.display='none';
-          canvas.style.display='block';
-          toggleCrop.textContent='进入裁剪模式';
-          applyCrop.disabled=true;
-          resetCrop.disabled=true;
+        }
+        cropImg.style.display='none';
+        canvas.style.display='block';
+        toggleCrop.textContent='进入裁剪模式';
+        applyCrop.disabled=true;
+        resetCrop.disabled=true;
+      }
+
+      toggleCrop.addEventListener('click',()=>{
+        if(cropper){
+          exitCropMode();
         }else{
           cropImg.src=canvas.toDataURL();
           cropImg.style.display='block';
@@ -374,12 +380,13 @@
           drawImage();
         };
         img.src=c.toDataURL();
-        toggleCrop.click();
+        exitCropMode();
       });
 
       fileInput.addEventListener('change',e=>{
         const file=e.target.files[0];
         if(!file) return;
+        exitCropMode();
         const url=URL.createObjectURL(file);
         img=new Image();
         img.onload=()=>{
@@ -387,6 +394,7 @@
           canvas.height=img.height;
           initFlakes();
           toggleCrop.disabled=false;
+          drawImage();
           if(!animId) render();
         };
         img.src=url;
