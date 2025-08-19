@@ -213,13 +213,78 @@
     // —— 占位：你现有的雪花渲染/导出/裁剪逻辑可直接放在此处（保持原 id 即可工作） ——
     // 提示：本文件只新增了抽屉与事件派发，不改动任何已有控件与 id。
     // 监听示例（若你已有实现，可删除）：
-    window.addEventListener('selectEffect',(e)=>{
-      const {id} = e.detail;
-      if(id==='snow'){
-        // 这里可确保勾选雪花复选框
-        const chk=document.getElementById('fxSnow'); if(chk) chk.checked=true;
+      window.addEventListener('selectEffect',(e)=>{
+        const {id} = e.detail;
+        if(id==='snow'){
+          // 这里可确保勾选雪花复选框
+          const chk=document.getElementById('fxSnow'); if(chk) chk.checked=true;
+        }
+      });
+
+      // —— 上传图片并确保雪花特效可见 ——
+      const fileInput=document.getElementById('file');
+      const canvas=document.getElementById('cv');
+      const ctx=canvas.getContext('2d');
+      const density=document.getElementById('density');
+      const flakeSize=document.getElementById('flakeSize');
+      const speed=document.getElementById('speed');
+      const fxSnow=document.getElementById('fxSnow');
+      const btnClearSnow=document.getElementById('btnClearSnow');
+
+      let img=new Image();
+      let flakes=[];
+      let animId=null;
+
+      function drawImage(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(img.src) ctx.drawImage(img,0,0,canvas.width,canvas.height);
       }
-    });
-  </script>
-</body>
-</html>
+
+      function initFlakes(){
+        const count=parseInt(density.value,10);
+        const size=parseInt(flakeSize.value,10);
+        const spd=parseInt(speed.value,10)/50;
+        flakes=Array.from({length:count},()=>({
+          x:Math.random()*canvas.width,
+          y:Math.random()*canvas.height,
+          r:Math.random()*size/2+1,
+          v:Math.random()*spd+0.5
+        }));
+      }
+
+      function render(){
+        drawImage();
+        if(fxSnow.checked){
+          ctx.fillStyle='#fff';
+          flakes.forEach(f=>{
+            ctx.beginPath();
+            ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+            ctx.fill();
+            f.y+=f.v;
+            if(f.y>canvas.height){f.y=-f.r;f.x=Math.random()*canvas.width;}
+          });
+        }
+        animId=requestAnimationFrame(render);
+      }
+
+      density.addEventListener('input',initFlakes);
+      flakeSize.addEventListener('input',initFlakes);
+      speed.addEventListener('input',initFlakes);
+      btnClearSnow.addEventListener('click',initFlakes);
+
+      fileInput.addEventListener('change',e=>{
+        const file=e.target.files[0];
+        if(!file) return;
+        const url=URL.createObjectURL(file);
+        img=new Image();
+        img.onload=()=>{
+          canvas.width=img.width;
+          canvas.height=img.height;
+          initFlakes();
+          if(!animId) render();
+        };
+        img.src=url;
+      });
+    </script>
+  </body>
+  </html>
