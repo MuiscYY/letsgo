@@ -47,6 +47,7 @@
     #effectsDrawer .card:hover{background:#1a2132}
     #effectsDrawer .badge{font-size:11px;padding:2px 8px;border:1px solid #2a3550;border-radius:999px;color:#cfe1ff;background:#101625}
   </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css">
 </head>
 <body>
   <header>
@@ -171,10 +172,11 @@
 
     <!-- 右侧：画布（保持不变） -->
     <section class="panel">
+      <img id="cropImg" style="display:none;max-width:100%;border-radius:12px;border:1px solid #23283d;" alt="crop" />
       <canvas id="cv" width="240" height="240"></canvas>
     </section>
   </main>
-
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <script>
     // —— 左侧抽屉逻辑 ——
     const drawerBtn=document.getElementById('drawerBtn');
@@ -230,6 +232,14 @@
       const speed=document.getElementById('speed');
       const fxSnow=document.getElementById('fxSnow');
       const btnClearSnow=document.getElementById('btnClearSnow');
+      const snowStyle=document.getElementById('snowStyle');
+      const toggleCrop=document.getElementById('toggleCrop');
+      const applyCrop=document.getElementById('applyCrop');
+      const resetCrop=document.getElementById('resetCrop');
+      const aspect=document.getElementById('aspect');
+      const cropImg=document.getElementById('cropImg');
+
+      let cropper=null;
 
       let img=new Image();
       let flakes=[];
@@ -248,18 +258,69 @@
           x:Math.random()*canvas.width,
           y:Math.random()*canvas.height,
           r:Math.random()*size/2+1,
-          v:Math.random()*spd+0.5
+          v:Math.random()*spd+0.5,
+          rot:Math.random()*Math.PI*2,
+          points:Math.floor(Math.random()*3)+5
         }));
+      }
+
+      function drawLineHex(f){
+        ctx.save();
+        ctx.translate(f.x,f.y);
+        ctx.rotate(f.rot);
+        ctx.strokeStyle='#fff';
+        ctx.beginPath();
+        for(let i=0;i<6;i++){
+          const a=Math.PI/3*i;
+          ctx.lineTo(Math.cos(a)*f.r,Math.sin(a)*f.r);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawSolidStar(f){
+        ctx.save();
+        ctx.translate(f.x,f.y);
+        ctx.rotate(f.rot);
+        ctx.fillStyle='#fff';
+        ctx.beginPath();
+        for(let i=0;i<2*f.points;i++){
+          const r=i%2===0?f.r:f.r/2;
+          const a=i*Math.PI/f.points;
+          ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawCartoonStar(f){
+        ctx.save();
+        ctx.translate(f.x,f.y);
+        ctx.rotate(f.rot);
+        ctx.fillStyle='#fff';
+        ctx.lineJoin='round';
+        const inner=f.r*(0.3+Math.random()*0.3);
+        ctx.beginPath();
+        for(let i=0;i<10;i++){
+          const r=i%2===0?f.r:inner;
+          const a=i*Math.PI/5;
+          ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
 
       function render(){
         drawImage();
         if(fxSnow.checked){
-          ctx.fillStyle='#fff';
           flakes.forEach(f=>{
-            ctx.beginPath();
-            ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
-            ctx.fill();
+            const style=snowStyle.value;
+            if(style==='line') drawLineHex(f);
+            else if(style==='solid') drawSolidStar(f);
+            else drawCartoonStar(f);
             f.y+=f.v;
             if(f.y>canvas.height){f.y=-f.r;f.x=Math.random()*canvas.width;}
           });
@@ -271,6 +332,50 @@
       flakeSize.addEventListener('input',initFlakes);
       speed.addEventListener('input',initFlakes);
       btnClearSnow.addEventListener('click',initFlakes);
+      snowStyle.addEventListener('change',initFlakes);
+
+      function getAspect(){
+        const val=aspect.value;
+        if(val==='free') return NaN;
+        const [w,h]=val.split(':').map(Number);
+        return w/h;
+      }
+
+      toggleCrop.addEventListener('click',()=>{
+        if(cropper){
+          cropper.destroy();
+          cropper=null;
+          cropImg.style.display='none';
+          canvas.style.display='block';
+          toggleCrop.textContent='进入裁剪模式';
+          applyCrop.disabled=true;
+          resetCrop.disabled=true;
+        }else{
+          cropImg.src=canvas.toDataURL();
+          cropImg.style.display='block';
+          canvas.style.display='none';
+          cropper=new Cropper(cropImg,{viewMode:1,aspectRatio:getAspect()});
+          toggleCrop.textContent='退出裁剪模式';
+          applyCrop.disabled=false;
+          resetCrop.disabled=false;
+        }
+      });
+
+      aspect.addEventListener('change',()=>{ if(cropper) cropper.setAspectRatio(getAspect()); });
+      resetCrop.addEventListener('click',()=>{ if(cropper) cropper.reset(); });
+      applyCrop.addEventListener('click',()=>{
+        if(!cropper) return;
+        const c=cropper.getCroppedCanvas();
+        img.onload=()=>{
+          canvas.width=img.width;
+          canvas.height=img.height;
+          initFlakes();
+          if(!animId) render();
+          drawImage();
+        };
+        img.src=c.toDataURL();
+        toggleCrop.click();
+      });
 
       fileInput.addEventListener('change',e=>{
         const file=e.target.files[0];
@@ -281,6 +386,7 @@
           canvas.width=img.width;
           canvas.height=img.height;
           initFlakes();
+          toggleCrop.disabled=false;
           if(!animId) render();
         };
         img.src=url;
