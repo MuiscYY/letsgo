@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>图片加雪花特效 · 裁剪可见 · 四边拉伸 · 积雪持久 · 高清导出（含左侧抽屉特效选择）</title>
+  <style>
+    :root{--bg:#0b0c10;--fg:#eaeef7;--muted:#9aa3b2;--card:#141722;--accent:#7aa2ff}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
+    header{padding:14px 12px;text-align:center;border-bottom:1px solid #202536;background:#0f1118}
+    h1{margin:0;font-size:18px}
+
+    /* 主区域保持与原版一致：左为控制面板，右为画布 */
+    main{max-width:1120px;margin:10px auto;padding:0 12px;display:grid;grid-template-columns:380px 1fr;gap:12px}
+    .panel{background:var(--card);border:1px solid #22283a;border-radius:14px;padding:12px;box-shadow:0 6px 28px rgba(0,0,0,.35)}
+    .row{display:flex;align-items:center;gap:8px;margin:8px 0}
+    .row.wrap{flex-wrap:wrap}
+    label{font-weight:600}
+    input[type="range"]{width:100%}
+    select,button,input[type="file"]{background:#151a28;border:1px solid #26304a;color:var(--fg);border-radius:10px;padding:8px 10px}
+    button{cursor:pointer}
+    button.primary{background:linear-gradient(180deg,#6aa3ff,#5b8cff);border-color:#5b8cff;color:#fff}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .hint{color:var(--muted);font-size:12px}
+    canvas{width:100%;height:auto;background:#111;border-radius:12px;border:1px solid #23283d;touch-action:none;image-rendering:auto}
+    #log{width:100%;height:140px;background:#0e121a;border:1px solid #27324b;color:#c9d3e7;border-radius:8px;padding:8px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+    .sep{height:1px;background:#23283d;margin:10px 0}
+    .tag{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid #2a3550;background:#101625}
+
+    /* —— 左侧贴边长条按钮 + 抽屉 —— */
+    #drawerBtn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:9999;writing-mode:vertical-rl;transform-origin:left center; 
+      border:none;border-radius:10px 0 0 10px;background:#101625;color:#cfe1ff;
+      padding:14px 8px;letter-spacing:1px;cursor:pointer;box-shadow:0 6px 28px rgba(0,0,0,.45);
+      border-left:2px solid #5b8cff;border-top:1px solid #22314e;border-bottom:1px solid #22314e}
+    #drawerBtn:hover{color:#fff}
+
+    #effectsDrawer{position:fixed;inset:0 auto 0 0;width:260px;max-width:80vw;background:#0f141f;border-right:1px solid #22283a;z-index:9998;
+      box-shadow:8px 0 28px rgba(0,0,0,.45);transform:translateX(-100%);transition:transform .22s ease}
+    #effectsDrawer.open{transform:translateX(0)}
+    #effectsDrawer header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #202536;background:#0f1118}
+    #effectsDrawer .tabs{display:flex;gap:6px;padding:10px 10px 0}
+    #effectsDrawer .tab{padding:6px 10px;border:1px solid #2a3550;border-radius:999px;background:#101625;color:#cfe1ff;cursor:pointer}
+    #effectsDrawer .tab.active{background:linear-gradient(180deg,#6aa3ff,#5b8cff);border-color:#5b8cff;color:#fff}
+    #effectsDrawer .list{padding:10px;max-height:calc(100vh - 120px);overflow:auto}
+    #effectsDrawer .card{background:#141a28;border:1px solid #22283a;border-radius:12px;padding:8px;margin:6px 0;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
+    #effectsDrawer .card:hover{background:#1a2132}
+    #effectsDrawer .badge{font-size:11px;padding:2px 8px;border:1px solid #2a3550;border-radius:999px;color:#cfe1ff;background:#101625}
+  </style>
+</head>
+<body>
+  <header>
+    <h3>Music出品/上传图片 · 添加雪花 · 预览与导出（5s 固定 · 裁剪可见 · 四边拉伸 · 积雪持久 · 高清导出）</h3>
+  </header>
+
+  <!-- 左侧贴边：固定长条按钮（不挡主区域） -->
+  <button id="drawerBtn" aria-expanded="false">▶ 特效</button>
+
+  <!-- 左侧抽屉：点击按钮展开，分区正确且每个可点击 -->
+  <aside id="effectsDrawer" aria-hidden="true">
+    <header>
+      <strong>特效选择</strong>
+      <span class="hint">点击应用 · 分区：自然 / 光效 / 趣味</span>
+    </header>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="nature" role="tab" aria-selected="true">自然</button>
+      <button class="tab" data-tab="light" role="tab" aria-selected="false">光效</button>
+      <button class="tab" data-tab="cute" role="tab" aria-selected="false">趣味</button>
+    </div>
+    <div class="list" id="list-nature">
+      <div class="card" data-id="snow"><span>雪花（已实现）</span><span class="badge">自然</span></div>
+      <div class="card" data-id="sakura"><span>飘落樱花瓣</span><span class="badge">自然</span></div>
+      <div class="card" data-id="leaf"><span>金色树叶旋落</span><span class="badge">自然</span></div>
+      <div class="card" data-id="bubbles"><span>粉色气泡漂浮</span><span class="badge">自然</span></div>
+      <div class="card" data-id="firefly"><span>萤火虫微光</span><span class="badge">自然</span></div>
+      <div class="card" data-id="meteor"><span>星空流星雨</span><span class="badge">自然</span></div>
+      <div class="card" data-id="rainbow-glow"><span>彩虹透光</span><span class="badge">自然</span></div>
+      <div class="card" data-id="wave"><span>海浪波纹扩散</span><span class="badge">自然</span></div>
+      <div class="card" data-id="flowers"><span>草地小花绽放</span><span class="badge">自然</span></div>
+      <div class="card" data-id="cloud"><span>云朵轻移</span><span class="badge">自然</span></div>
+    </div>
+    <div class="list" id="list-light" style="display:none">
+      <div class="card" data-id="bling"><span>闪烁星点</span><span class="badge">光效</span></div>
+      <div class="card" data-id="heart-bubble"><span>爱心泡泡浮现</span><span class="badge">光效</span></div>
+      <div class="card" data-id="neon-ring"><span>彩色霓虹圈脉动</span><span class="badge">光效</span></div>
+      <div class="card" data-id="beam"><span>光束穿梭</span><span class="badge">光效</span></div>
+      <div class="card" data-id="magic-circle"><span>魔法阵光圈旋转</span><span class="badge">光效</span></div>
+      <div class="card" data-id="prism"><span>彩色折射棱镜光</span><span class="badge">光效</span></div>
+      <div class="card" data-id="pearl"><span>珍珠光泽闪动</span><span class="badge">光效</span></div>
+      <div class="card" data-id="mirror"><span>镜面反射碎光</span><span class="badge">光效</span></div>
+      <div class="card" data-id="elec"><span>电光丝线闪烁</span><span class="badge">光效</span></div>
+      <div class="card" data-id="mist"><span>烟雾缭绕渐散</span><span class="badge">光效</span></div>
+    </div>
+    <div class="list" id="list-cute" style="display:none">
+      <div class="card" data-id="heart-boom"><span>卡通爱心爆裂</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="shoujo-glow"><span>少女心闪光</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="confetti"><span>彩带礼花喷洒</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="bubble-machine"><span>泡泡机效果</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="candy"><span>糖果彩屑掉落</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="paw-bear"><span>小熊爪印</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="paw-cat"><span>小猫脚印追踪</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="sticker"><span>手绘小贴纸</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="feather"><span>粉色小羽毛</span><span class="badge">趣味</span></div>
+      <div class="card" data-id="rainbow-bridge"><span>彩虹桥划过</span><span class="badge">趣味</span></div>
+    </div>
+  </aside>
+
+  <main>
+    <!-- 左侧：控制面板（原样保留） -->
+    <section class="panel">
+      <div class="row wrap">
+        <input id="file" type="file" accept="image/*" />
+        <span class="tag">上传显示修复</span>
+        <span class="tag">裁剪四边拉伸</span>
+        <span class="tag">积雪持久</span>
+        <span class="tag">高清导出</span>
+      </div>
+      <div id="msg" class="hint">默认导出 5 秒 / 30fps / <b>25000kbps</b>。若看不到图片，请看下方日志。</div>
+
+      <div class="sep"></div>
+      <div class="row wrap">
+        <button id="toggleCrop" disabled>进入裁剪模式</button>
+        <select id="aspect">
+          <option value="free" selected>比例：自由</option>
+          <option value="1:1">1 : 1</option>
+          <option value="4:5">4 : 5</option>
+          <option value="3:4">3 : 4</option>
+          <option value="16:9">16 : 9</option>
+          <option value="9:16">9 : 16</option>
+        </select>
+        <button id="applyCrop" class="primary" disabled>应用裁剪</button>
+        <button id="resetCrop" disabled>重置选择</button>
+      </div>
+      <div class="hint">裁剪模式：拖拽四边中点单独拉伸；空白处拖拽可重画选区；比例锁照常生效。</div>
+
+      <div class="sep"></div>
+      <!-- 特效控制：仅雪花（其余通过左侧抽屉选择） -->
+      <div class="row">
+        <label for="snowStyle">雪花样式</label>
+        <select id="snowStyle">
+          <option value="line">线描六角</option>
+          <option value="solid" selected>实心多角星</option>
+          <option value="star">星形（卡通）</option>
+        </select>
+      </div>
+      <div class="row"><label style="min-width:60px">密度</label><input id="density" type="range" min="0" max="200" value="90" /></div>
+      <div class="row"><label style="min-width:60px">大小</label><input id="flakeSize" type="range" min="1" max="12" value="6" /></div>
+      <div class="row"><label style="min-width:60px">速度</label><input id="speed" type="range" min="10" max="200" value="70" /></div>
+      <div class="row">
+        <label><input type="checkbox" id="fxSnow" checked> 雪花</label>
+      </div>
+      <div class="row">
+        <button id="btnClearSnow">清除积雪</button>
+        <span class="hint">预览“越下越厚”，循环也不清零；点此归零再看。</span>
+      </div>
+
+      <div class="sep"></div>
+      <div class="row">
+        <button id="exportWebM" class="primary" disabled>导出 WebM</button>
+        <button id="exportZip" disabled>导出 PNG 帧序列（ZIP）</button>
+      </div>
+      <div class="hint">若浏览器不支持 WebM，将自动改用 ZIP 帧序列。</div>
+
+      <div class="sep"></div>
+      <div class="row"><button id="runTests">运行自检</button></div>
+      <div class="hint">含：上传可见性、裁剪句柄命中、导出通路测试。</div>
+      <div class="sep"></div>
+      <textarea id="log" readonly placeholder="日志输出（错误会显示在这里）"></textarea>
+      <div id="dl" class="hint"></div>
+    </section>
+
+    <!-- 右侧：画布（保持不变） -->
+    <section class="panel">
+      <canvas id="cv" width="240" height="240"></canvas>
+    </section>
+  </main>
+
+  <script>
+    // —— 左侧抽屉逻辑 ——
+    const drawerBtn=document.getElementById('drawerBtn');
+    const effectsDrawer=document.getElementById('effectsDrawer');
+    const tabButtons=[...effectsDrawer.querySelectorAll('.tab')];
+    const lists={nature:document.getElementById('list-nature'), light:document.getElementById('list-light'), cute:document.getElementById('list-cute')};
+
+    drawerBtn.addEventListener('click',()=>{
+      const open=!effectsDrawer.classList.contains('open');
+      effectsDrawer.classList.toggle('open',open);
+      drawerBtn.setAttribute('aria-expanded',String(open));
+      effectsDrawer.setAttribute('aria-hidden',String(!open));
+      drawerBtn.textContent=open?'◀ 收起':'▶ 特效';
+    });
+
+    tabButtons.forEach(btn=>btn.addEventListener('click',()=>{
+      tabButtons.forEach(b=>{b.classList.remove('active'); b.setAttribute('aria-selected','false');});
+      btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+      const key=btn.dataset.tab; Object.entries(lists).forEach(([k,el])=>{el.style.display = (k===key)?'block':'none';});
+    }));
+
+    effectsDrawer.querySelectorAll('.card').forEach(card=>{
+      card.addEventListener('click',()=>{
+        const id=card.dataset.id, name=card.textContent.trim();
+        // 向外广播：与主画布逻辑解耦
+        window.dispatchEvent(new CustomEvent('selectEffect',{detail:{id,name}}));
+        // 仅雪花已实现，其它先提示
+        if(id!=='snow'){
+          alert('"'+name+'" 即将上线，当前先保留雪花参数面板。');
+        }
+        // 抽屉保持打开，便于连选；如需自动收起，可取消注释：
+        // drawerBtn.click();
+      });
+    });
+
+    // —— 占位：你现有的雪花渲染/导出/裁剪逻辑可直接放在此处（保持原 id 即可工作） ——
+    // 提示：本文件只新增了抽屉与事件派发，不改动任何已有控件与 id。
+    // 监听示例（若你已有实现，可删除）：
+    window.addEventListener('selectEffect',(e)=>{
+      const {id} = e.detail;
+      if(id==='snow'){
+        // 这里可确保勾选雪花复选框
+        const chk=document.getElementById('fxSnow'); if(chk) chk.checked=true;
+      }
+    });
+  </script>
+</body>
+</html>
