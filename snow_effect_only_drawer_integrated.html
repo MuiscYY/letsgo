@@ -228,12 +228,14 @@
       const density=document.getElementById('density');
       const flakeSize=document.getElementById('flakeSize');
       const speed=document.getElementById('speed');
+      const snowStyle=document.getElementById('snowStyle');
       const fxSnow=document.getElementById('fxSnow');
       const btnClearSnow=document.getElementById('btnClearSnow');
 
       let img=new Image();
       let flakes=[];
       let animId=null;
+      let style=snowStyle.value;
 
       function drawImage(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -252,14 +254,52 @@
         }));
       }
 
+      function drawFlake(f){
+        switch(style){
+          case 'line':
+            ctx.strokeStyle='#fff';
+            ctx.lineWidth=1;
+            ctx.beginPath();
+            for(let i=0;i<3;i++){
+              const a=i*Math.PI/3;
+              const dx=Math.cos(a)*f.r;
+              const dy=Math.sin(a)*f.r;
+              ctx.moveTo(f.x-dx,f.y-dy);
+              ctx.lineTo(f.x+dx,f.y+dy);
+            }
+            ctx.stroke();
+            break;
+          case 'star':
+            ctx.fillStyle='#fff';
+            ctx.beginPath();
+            for(let i=0;i<5;i++){
+              const a=(i*72-90)*Math.PI/180;
+              const r=i%2===0?f.r:f.r/2;
+              const x=f.x+Math.cos(a)*r;
+              const y=f.y+Math.sin(a)*r;
+              i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            break;
+          default: // solid
+            ctx.fillStyle='#fff';
+            ctx.beginPath();
+            ctx.moveTo(f.x+f.r, f.y);
+            for(let i=1;i<6;i++){
+              const a=i*Math.PI/3;
+              ctx.lineTo(f.x+Math.cos(a)*f.r,f.y+Math.sin(a)*f.r);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+      }
+
       function render(){
         drawImage();
         if(fxSnow.checked){
-          ctx.fillStyle='#fff';
           flakes.forEach(f=>{
-            ctx.beginPath();
-            ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
-            ctx.fill();
+            drawFlake(f);
             f.y+=f.v;
             if(f.y>canvas.height){f.y=-f.r;f.x=Math.random()*canvas.width;}
           });
@@ -270,6 +310,7 @@
       density.addEventListener('input',initFlakes);
       flakeSize.addEventListener('input',initFlakes);
       speed.addEventListener('input',initFlakes);
+      snowStyle.addEventListener('change',()=>{style=snowStyle.value;});
       btnClearSnow.addEventListener('click',initFlakes);
 
       fileInput.addEventListener('change',e=>{
