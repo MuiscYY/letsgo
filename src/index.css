@@ -89,7 +89,17 @@ body {
   }
 
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-33.333%);
+  }
+}
+
+@keyframes marqueeReverse {
+  0% {
+    transform: translateX(-33.333%);
+  }
+
+  100% {
+    transform: translateX(0);
   }
 }
 

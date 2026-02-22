@@ -1,278 +1,13 @@
-import { useState, useEffect, createContext, useContext, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { HashRouter, Routes, Route, Link } from 'react-router-dom'
 import {
-    Menu,
-    X,
-    Code,
-    ShoppingCart,
-    Settings,
-    ArrowRight,
-    Mail,
-    MapPin,
-    ChevronRight,
-    Monitor,
-    Layers,
-    Zap,
-    ExternalLink,
-    Globe,
-    Send,
-    User,
-    MessageSquare,
-    Briefcase,
-    CheckCircle2,
-    Phone,
-    Building2,
-    Shield,
-    Clock,
-    Users,
-    Target,
-    TrendingUp,
+    Menu, X, Code, ShoppingCart, Settings, ArrowRight, Mail, MapPin,
+    ChevronRight, Monitor, Layers, Zap, ExternalLink, Globe, Send,
+    User, MessageSquare, Briefcase, CheckCircle2, Phone, Building2,
+    Shield, Clock, Users, Target, TrendingUp,
 } from 'lucide-react'
-
-/* ══════════════════════════════════════════════
-   i18n — Internationalization
-   ══════════════════════════════════════════════ */
-const translations = {
-    zh: {
-        // Navbar
-        nav: {
-            home: '首页',
-            services: '核心服务',
-            about: '关于我们',
-            contact: '联系我们',
-            cta: '立即咨询',
-        },
-        // Hero
-        hero: {
-            badge: '专业 IT 技术咨询与定制化软件开发服务商',
-            titleLine1: '驱动业务创新的',
-            titleLine2: '定制化 IT 解决方案',
-            subtitle:
-                '致力于为海内外企业客户提供高质量的 IT 技术外包、软件系统开发及架构咨询服务，助力企业数字化转型。',
-            btnServices: '了解我们的服务',
-            btnContact: '联系我们',
-            stat1Value: '50+',
-            stat1Label: '企业客户',
-            stat2Value: '200+',
-            stat2Label: '成功交付项目',
-            stat3Value: '99.9%',
-            stat3Label: '系统可用性',
-        },
-        // Services
-        services: {
-            label: 'Core Services',
-            title: '核心服务',
-            subtitle: '以技术驱动商业价值，为您提供端到端的数字化解决方案',
-            card1Title: '定制化软件开发',
-            card1Desc:
-                '涵盖现代 Web 应用开发、PWA（渐进式网页应用）平台搭建、以及跨平台移动端适配开发。',
-            card2Title: '交易系统架构',
-            card2Desc:
-                '提供从底层逻辑设计到前端产品交付的全链路开发服务，支持高并发的电子商务与社区交易平台需求。',
-            card3Title: 'IT 技术咨询与运维',
-            card3Desc:
-                '为客户的出海项目提供系统部署、软件性能测试、代码审查及全天候的技术运维支持。',
-            learnMore: '了解详情',
-        },
-        // Why Us
-        whyUs: {
-            label: 'Why Choose Us',
-            title: '为什么选择我们',
-            subtitle: '以结果为导向的专业技术服务，让每一个项目都成为精品',
-            items: [
-                { title: '敏捷交付', desc: '采用 Scrum/Kanban 方法论，确保快速迭代与按时交付' },
-                { title: '全栈能力', desc: '覆盖前端、后端、移动端、云原生的全技术栈解决方案' },
-                { title: '安全合规', desc: '遵循国际安全标准，确保代码质量与数据安全' },
-                { title: '7×24 运维', desc: '提供全天候技术支持，保障系统稳定运行' },
-                { title: '国际视野', desc: '服务海内外客户，具备跨文化项目管理经验' },
-                { title: '持续增长', desc: '助力客户实现数字化转型，驱动业务持续增长' },
-            ],
-        },
-        // About
-        about: {
-            label: 'About Us',
-            title: '关于我们',
-            description:
-                '我们是一家专注于 B2B 业务模式的科技咨询公司。通过敏捷开发与专业的技术团队，我们采用项目制交付和技术服务费的结算模式，为全球客户提供符合国际标准的技术闭环。',
-            stat1Value: '10+',
-            stat1Label: '年行业经验',
-            stat2Value: '100%',
-            stat2Label: '项目交付率',
-            stat3Value: '7×24',
-            stat3Label: '运维支持',
-            stat4Value: '30+',
-            stat4Label: '技术专家',
-        },
-        // Contact Form
-        contactForm: {
-            label: 'Get In Touch',
-            title: '联系我们',
-            subtitle: '填写下方表单，我们将在 24 小时内回复您',
-            name: '您的姓名',
-            namePlaceholder: '请输入您的姓名',
-            email: '电子邮箱',
-            emailPlaceholder: '请输入您的邮箱',
-            company: '公司名称',
-            companyPlaceholder: '请输入您的公司名称',
-            phone: '联系电话',
-            phonePlaceholder: '请输入您的联系电话',
-            message: '项目描述',
-            messagePlaceholder: '请描述您的项目需求、预算和时间计划...',
-            submit: '发送咨询',
-            sending: '发送中...',
-            success: '消息已发送！我们会尽快与您联系。',
-            infoTitle: '联系方式',
-            emailLabel: '邮箱',
-            addressLabel: '地址',
-            address: '中国上海市',
-        },
-        // Footer
-        footer: {
-            ctaTitle1: '准备好启动您的',
-            ctaHighlight: '下一个项目',
-            ctaTitle2: '了吗？',
-            ctaSubtitle: '联系我们，获取免费项目评估与技术咨询',
-            ctaBtn: '发送邮件咨询',
-            brand: '专业的 IT 技术咨询与定制化软件开发服务商，助力企业数字化转型。',
-            contactTitle: '联系方式',
-            navTitle: '快速导航',
-            copyright:
-                '© 2026 Shanghai Qixiang Business Consulting Co., Ltd. All rights reserved.',
-        },
-    },
-    en: {
-        nav: {
-            home: 'Home',
-            services: 'Services',
-            about: 'About',
-            contact: 'Contact',
-            cta: 'Get Started',
-        },
-        hero: {
-            badge: 'Professional IT Consulting & Custom Software Development',
-            titleLine1: 'Custom IT Solutions',
-            titleLine2: 'That Drive Innovation',
-            subtitle:
-                'Delivering high-quality IT outsourcing, software development, and architecture consulting services to enterprises worldwide, empowering digital transformation.',
-            btnServices: 'Explore Our Services',
-            btnContact: 'Contact Us',
-            stat1Value: '50+',
-            stat1Label: 'Enterprise Clients',
-            stat2Value: '200+',
-            stat2Label: 'Projects Delivered',
-            stat3Value: '99.9%',
-            stat3Label: 'System Uptime',
-        },
-        services: {
-            label: 'Core Services',
-            title: 'Our Services',
-            subtitle: 'Technology-driven business value with end-to-end digital solutions',
-            card1Title: 'Custom Software Development',
-            card1Desc:
-                'Modern web application development, PWA platform building, and cross-platform mobile development.',
-            card2Title: 'Transaction System Architecture',
-            card2Desc:
-                'Full-stack development from underlying logic design to frontend delivery, supporting high-concurrency e-commerce and community trading platforms.',
-            card3Title: 'IT Consulting & Operations',
-            card3Desc:
-                'System deployment, performance testing, code review, and 24/7 technical support for your global business.',
-            learnMore: 'Learn More',
-        },
-        whyUs: {
-            label: 'Why Choose Us',
-            title: 'Why Choose Us',
-            subtitle: 'Result-oriented professional tech services — every project is a masterpiece',
-            items: [
-                { title: 'Agile Delivery', desc: 'Scrum / Kanban methodology for fast iteration and on-time delivery' },
-                { title: 'Full-Stack Expertise', desc: 'End-to-end coverage across frontend, backend, mobile, and cloud-native' },
-                { title: 'Security & Compliance', desc: 'International security standards with rigorous code quality assurance' },
-                { title: '24/7 Support', desc: 'Round-the-clock technical support to keep your systems running' },
-                { title: 'Global Perspective', desc: 'Serving clients worldwide with cross-cultural project management' },
-                { title: 'Growth-Oriented', desc: 'Empowering digital transformation and sustaining business growth' },
-            ],
-        },
-        about: {
-            label: 'About Us',
-            title: 'About Us',
-            description:
-                'We are a B2B-focused technology consulting company. Through agile development and a professional team, we deliver project-based solutions with service-fee billing models, providing global clients with technology solutions that meet international standards.',
-            stat1Value: '10+',
-            stat1Label: 'Years Experience',
-            stat2Value: '100%',
-            stat2Label: 'Delivery Rate',
-            stat3Value: '24/7',
-            stat3Label: 'Support',
-            stat4Value: '30+',
-            stat4Label: 'Tech Experts',
-        },
-        contactForm: {
-            label: 'Get In Touch',
-            title: 'Contact Us',
-            subtitle: 'Fill out the form below and we\'ll get back to you within 24 hours',
-            name: 'Your Name',
-            namePlaceholder: 'Enter your name',
-            email: 'Email Address',
-            emailPlaceholder: 'Enter your email',
-            company: 'Company Name',
-            companyPlaceholder: 'Enter your company name',
-            phone: 'Phone Number',
-            phonePlaceholder: 'Enter your phone number',
-            message: 'Project Description',
-            messagePlaceholder: 'Describe your project requirements, budget, and timeline...',
-            submit: 'Send Inquiry',
-            sending: 'Sending...',
-            success: 'Message sent! We\'ll be in touch soon.',
-            infoTitle: 'Contact Info',
-            emailLabel: 'Email',
-            addressLabel: 'Address',
-            address: 'Shanghai, China',
-        },
-        footer: {
-            ctaTitle1: 'Ready to Start',
-            ctaHighlight: 'Your Next Project',
-            ctaTitle2: '?',
-            ctaSubtitle: 'Contact us for a free project evaluation and technical consultation',
-            ctaBtn: 'Send Email Inquiry',
-            brand:
-                'Professional IT consulting and custom software development, empowering enterprise digital transformation.',
-            contactTitle: 'Contact',
-            navTitle: 'Quick Links',
-            copyright:
-                '© 2026 Shanghai Qixiang Business Consulting Co., Ltd. All rights reserved.',
-        },
-    },
-}
-
-const LangContext = createContext({ lang: 'zh', t: translations.zh, toggle: () => { } })
-
-function LangProvider({ children }) {
-    const [lang, setLang] = useState(() => {
-        try {
-            return localStorage.getItem('qx-lang') || 'zh'
-        } catch {
-            return 'zh'
-        }
-    })
-
-    const toggle = () => {
-        const next = lang === 'zh' ? 'en' : 'zh'
-        setLang(next)
-        try {
-            localStorage.setItem('qx-lang', next)
-        } catch { }
-    }
-
-    const t = translations[lang]
-
-    return (
-        <LangContext.Provider value={{ lang, t, toggle }}>
-            {children}
-        </LangContext.Provider>
-    )
-}
-
-function useLang() {
-    return useContext(LangContext)
-}
+import { LangProvider, useLang } from './i18n.js'
+import ServiceDetail from './ServiceDetail'
 
 /* ══════════════════════════════════════════════
    Animated Number Component
@@ -350,11 +85,16 @@ function Navbar() {
         return () => window.removeEventListener('scroll', onScroll)
     }, [])
 
+    const scrollTo = (id) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+        setOpen(false)
+    }
+
     const links = [
-        { label: t.nav.home, href: '#hero' },
-        { label: t.nav.services, href: '#services' },
-        { label: t.nav.about, href: '#about' },
-        { label: t.nav.contact, href: '#contact' },
+        { label: t.nav.home, id: 'hero' },
+        { label: t.nav.services, id: 'services' },
+        { label: t.nav.about, id: 'about' },
+        { label: t.nav.contact, id: 'contact' },
     ]
 
     return (
@@ -366,25 +106,25 @@ function Navbar() {
         >
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
                 {/* Logo */}
-                <a href="#hero" className="flex items-center gap-2.5 group">
+                <button onClick={() => scrollTo('hero')} className="flex items-center gap-2.5 group cursor-pointer">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 shadow-md shadow-primary-500/25 transition-transform group-hover:scale-105">
                         <Layers className="h-5 w-5 text-white" strokeWidth={2.5} />
                     </div>
                     <span className="text-lg font-bold tracking-tight text-slate-800">
                         Qixiang <span className="font-medium text-slate-500">Consulting</span>
                     </span>
-                </a>
+                </button>
 
                 {/* Desktop Links */}
                 <div className="hidden items-center gap-1 md:flex">
                     {links.map((l) => (
-                        <a
-                            key={l.href}
-                            href={l.href}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                        <button
+                            key={l.id}
+                            onClick={() => scrollTo(l.id)}
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
                         >
                             {l.label}
-                        </a>
+                        </button>
                     ))}
 
                     {/* Language Switcher */}
@@ -397,13 +137,13 @@ function Navbar() {
                         {lang === 'zh' ? 'EN' : '中文'}
                     </button>
 
-                    <a
-                        href="#contact"
-                        className="ml-3 inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-500/25 transition-all hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-500/30 active:scale-[0.97]"
+                    <button
+                        onClick={() => scrollTo('contact')}
+                        className="ml-3 inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-500/25 transition-all hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-500/30 active:scale-[0.97] cursor-pointer"
                     >
                         {t.nav.cta}
                         <ArrowRight className="h-4 w-4" />
-                    </a>
+                    </button>
                 </div>
 
                 {/* Mobile Right Side */}
@@ -432,23 +172,21 @@ function Navbar() {
             >
                 <div className="bg-white/95 backdrop-blur-xl px-6 pb-6 pt-2">
                     {links.map((l) => (
-                        <a
-                            key={l.href}
-                            href={l.href}
-                            onClick={() => setOpen(false)}
-                            className="block rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                        <button
+                            key={l.id}
+                            onClick={() => scrollTo(l.id)}
+                            className="block w-full text-left rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
                         >
                             {l.label}
-                        </a>
+                        </button>
                     ))}
-                    <a
-                        href="#contact"
-                        onClick={() => setOpen(false)}
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary-500/25 transition-all hover:bg-primary-700"
+                    <button
+                        onClick={() => scrollTo('contact')}
+                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary-500/25 transition-all hover:bg-primary-700 cursor-pointer"
                     >
                         {t.nav.cta}
                         <ArrowRight className="h-4 w-4" />
-                    </a>
+                    </button>
                 </div>
             </div>
         </nav>
@@ -488,6 +226,24 @@ function Hero() {
                 <div className="absolute top-1/4 right-1/3 h-2 w-2 rounded-full bg-primary-400/30 animate-pulse" />
                 <div className="absolute top-2/3 left-1/4 h-3 w-3 rounded-full bg-primary-300/20 animate-pulse" style={{ animationDelay: '1s' }} />
                 <div className="absolute top-1/3 left-2/3 h-1.5 w-1.5 rounded-full bg-violet-400/25 animate-pulse" style={{ animationDelay: '2s' }} />
+
+                {/* Side illustrations — hidden on small screens */}
+                <div className="hidden xl:block absolute left-0 top-1/2 -translate-y-1/2 w-[420px] 2xl:w-[500px]">
+                    <img
+                        src="/images/hero-left.png"
+                        alt=""
+                        className="w-full h-auto mix-blend-multiply animate-[float_6s_ease-in-out_infinite]"
+                        style={{ maskImage: 'radial-gradient(ellipse 60% 50% at 30% 50%, black 20%, transparent 70%)', WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 30% 50%, black 20%, transparent 70%)' }}
+                    />
+                </div>
+                <div className="hidden xl:block absolute right-0 top-1/2 -translate-y-1/2 w-[420px] 2xl:w-[500px]">
+                    <img
+                        src="/images/hero-right.png"
+                        alt=""
+                        className="w-full h-auto mix-blend-multiply animate-[float_6s_ease-in-out_infinite_1.5s]"
+                        style={{ maskImage: 'radial-gradient(ellipse 60% 50% at 70% 50%, black 20%, transparent 70%)', WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 70% 50%, black 20%, transparent 70%)' }}
+                    />
+                </div>
             </div>
 
             <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
@@ -517,20 +273,20 @@ function Hero() {
 
                     <Reveal delay={300}>
                         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:mt-12">
-                            <a
-                                href="#services"
-                                className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary-500/25 transition-all hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-500/30 active:scale-[0.97] sm:w-auto"
+                            <button
+                                onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary-500/25 transition-all hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-500/30 active:scale-[0.97] sm:w-auto cursor-pointer"
                             >
                                 {t.hero.btnServices}
                                 <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                            </a>
-                            <a
-                                href="#contact"
-                                className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-white hover:shadow-md active:scale-[0.97] sm:w-auto"
+                            </button>
+                            <button
+                                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-white hover:shadow-md active:scale-[0.97] sm:w-auto cursor-pointer"
                             >
                                 {t.hero.btnContact}
                                 <ExternalLink className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-0.5" />
-                            </a>
+                            </button>
                         </div>
                     </Reveal>
                 </div>
@@ -549,16 +305,13 @@ function Hero() {
 /* ──────────────────────────────────────────────
    Tech Stack Marquee — scrolling logos strip
    ────────────────────────────────────────────── */
-const techStack = [
-    'React', 'Node.js', 'TypeScript', 'Python', 'AWS', 'Docker',
-    'PostgreSQL', 'Kubernetes', 'Next.js', 'GraphQL', 'Redis', 'MongoDB',
-    'Vue.js', 'Java', 'Go', 'Nginx',
-]
+const techRow1 = ['React', 'Node.js', 'TypeScript', 'Python', 'AWS', 'Docker', 'PostgreSQL', 'Kubernetes']
+const techRow2 = ['Next.js', 'GraphQL', 'Redis', 'MongoDB', 'Vue.js', 'Java', 'Go', 'Nginx', 'Terraform', 'Elasticsearch']
 
 function TechMarquee() {
     const { lang } = useLang()
-    // Double the list for seamless loop
-    const items = [...techStack, ...techStack]
+    const row1 = [...techRow1, ...techRow1, ...techRow1]
+    const row2 = [...techRow2, ...techRow2, ...techRow2]
 
     return (
         <section className="overflow-hidden border-y border-slate-100 bg-white py-10">
@@ -567,14 +320,27 @@ function TechMarquee() {
             </p>
             <div className="relative">
                 {/* Fade edges */}
-                <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-24 bg-gradient-to-r from-white to-transparent" />
-                <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent" />
-                {/* Scrolling row */}
-                <div className="flex animate-[marquee_30s_linear_infinite] gap-6">
-                    {items.map((name, i) => (
+                <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-white to-transparent" />
+                <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32 bg-gradient-to-l from-white to-transparent" />
+
+                {/* Row 1 — scrolls left */}
+                <div className="flex animate-[marquee_25s_linear_infinite] gap-4 mb-4">
+                    {row1.map((name, i) => (
                         <span
-                            key={`${name}-${i}`}
+                            key={`r1-${name}-${i}`}
                             className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-500 shadow-sm"
+                        >
+                            {name}
+                        </span>
+                    ))}
+                </div>
+
+                {/* Row 2 — scrolls right */}
+                <div className="flex animate-[marqueeReverse_28s_linear_infinite] gap-4">
+                    {row2.map((name, i) => (
+                        <span
+                            key={`r2-${name}-${i}`}
+                            className="shrink-0 rounded-xl border border-primary-100 bg-primary-50/50 px-5 py-2.5 text-sm font-semibold text-primary-600/70 shadow-sm"
                         >
                             {name}
                         </span>
@@ -600,9 +366,9 @@ function Services() {
     const { t } = useLang()
 
     const services = [
-        { icon: Code, title: t.services.card1Title, description: t.services.card1Desc, color: 'primary', image: '/images/service-software.png' },
-        { icon: ShoppingCart, title: t.services.card2Title, description: t.services.card2Desc, color: 'violet', image: '/images/service-ecommerce.png' },
-        { icon: Settings, title: t.services.card3Title, description: t.services.card3Desc, color: 'emerald', image: '/images/service-consulting.png' },
+        { icon: Code, title: t.services.card1Title, description: t.services.card1Desc, color: 'primary', image: '/images/service-software.png', key: 'software' },
+        { icon: ShoppingCart, title: t.services.card2Title, description: t.services.card2Desc, color: 'violet', image: '/images/service-ecommerce.png', key: 'trading' },
+        { icon: Settings, title: t.services.card3Title, description: t.services.card3Desc, color: 'emerald', image: '/images/service-consulting.png', key: 'consulting' },
     ]
 
     return (
@@ -644,15 +410,67 @@ function Services() {
                                         </div>
                                         <h3 className="mt-5 text-xl font-semibold text-slate-800">{s.title}</h3>
                                         <p className="mt-3 text-sm leading-relaxed text-slate-500">{s.description}</p>
-                                        <div className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                        <Link to={`/service/${s.key}`} className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                                             {t.services.learnMore}
                                             <ArrowRight className="h-4 w-4" />
-                                        </div>
+                                        </Link>
                                     </div>
                                 </div>
                             </Reveal>
                         )
                     })}
+                </div>
+            </div>
+        </section>
+    )
+}
+
+/* ──────────────────────────────────────────────
+   Global Reach Banner — between Services & WhyUs
+   ────────────────────────────────────────────── */
+function GlobalBanner() {
+    const { lang } = useLang()
+
+    return (
+        <section className="relative overflow-hidden bg-slate-900">
+            {/* Globe Image */}
+            <div className="relative">
+                <img
+                    src="/images/global-network.png"
+                    alt="Global network"
+                    className="w-full h-[320px] lg:h-[420px] object-cover"
+                />
+                {/* Gradient overlays for blending */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-transparent opacity-30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+
+                {/* Overlaid text */}
+                <div className="absolute inset-0 flex flex-col items-center justify-end pb-12 lg:pb-16">
+                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-primary-400">
+                        {lang === 'zh' ? '全球化服务' : 'Global Reach'}
+                    </p>
+                    <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
+                        {lang === 'zh' ? '连接全球，赋能企业' : 'Connecting Worldwide, Empowering Business'}
+                    </h2>
+                    <p className="mt-3 max-w-xl text-center text-sm text-slate-400 lg:text-base">
+                        {lang === 'zh'
+                            ? '我们的服务覆盖亚洲、欧洲和北美，为出海企业提供无时差的技术支持'
+                            : 'Our services span Asia, Europe, and North America — seamless tech support across time zones'}
+                    </p>
+
+                    {/* Animated Stats */}
+                    <div className="mt-8 flex gap-12">
+                        {[
+                            { value: lang === 'zh' ? '3+' : '3+', label: lang === 'zh' ? '大洲覆盖' : 'Continents' },
+                            { value: lang === 'zh' ? '10+' : '10+', label: lang === 'zh' ? '国家/地区' : 'Countries' },
+                            { value: '24/7', label: lang === 'zh' ? '全天候支持' : 'Support' },
+                        ].map((s) => (
+                            <div key={s.label} className="text-center">
+                                <div className="text-2xl font-bold text-white lg:text-3xl">{s.value}</div>
+                                <div className="mt-1 text-xs font-medium text-slate-500">{s.label}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>
@@ -706,6 +524,79 @@ function WhyUs() {
                             </Reveal>
                         )
                     })}
+                </div>
+            </div>
+        </section>
+    )
+}
+
+/* ──────────────────────────────────────────────
+   Compliance & Security Standards Banner
+   ────────────────────────────────────────────── */
+const standardsRow1 = ['ISO 27001', 'GDPR', 'SOC 2 Type II', 'PCI DSS', 'OWASP Top 10', 'NIST CSF', 'HIPAA', 'CSA STAR']
+const standardsRow2 = ['SSL/TLS Encryption', 'Zero Trust Architecture', 'Penetration Testing', 'Data Loss Prevention', 'CCPA Compliance', 'End-to-End Encryption', 'WAF Protection', 'IAM Best Practices']
+
+function ComplianceBanner() {
+    const { lang } = useLang()
+    const row1 = [...standardsRow1, ...standardsRow1, ...standardsRow1]
+    const row2 = [...standardsRow2, ...standardsRow2, ...standardsRow2]
+
+    return (
+        <section className="relative overflow-hidden bg-slate-900 py-16 lg:py-20">
+            {/* Background glow */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[800px] rounded-full bg-primary-600/10 blur-3xl" />
+            </div>
+
+            {/* Header */}
+            <div className="relative mx-auto max-w-7xl px-6 text-center lg:px-8 mb-10">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-600/20 mb-5">
+                    <Shield className="h-7 w-7 text-primary-400" />
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-primary-400">
+                    {lang === 'zh' ? '安全合规' : 'Security & Compliance'}
+                </p>
+                <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">
+                    {lang === 'zh' ? '遵循国际安全标准' : 'International Security Standards'}
+                </h2>
+                <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">
+                    {lang === 'zh'
+                        ? '我们严格遵循全球主流安全认证与合规框架，确保您的数据与业务安全无忧'
+                        : 'We strictly follow global security certifications and compliance frameworks to keep your data safe'}
+                </p>
+            </div>
+
+            {/* Scrolling standards — Row 1 */}
+            <div className="relative mb-4">
+                <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-slate-900 to-transparent" />
+                <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32 bg-gradient-to-l from-slate-900 to-transparent" />
+                <div className="flex animate-[marquee_20s_linear_infinite] gap-4">
+                    {row1.map((name, i) => (
+                        <span
+                            key={`c1-${i}`}
+                            className="shrink-0 flex items-center gap-2 rounded-xl border border-primary-500/20 bg-primary-500/10 px-5 py-3 text-sm font-semibold text-primary-300"
+                        >
+                            <Shield className="h-4 w-4 text-primary-400" />
+                            {name}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            {/* Scrolling standards — Row 2 */}
+            <div className="relative">
+                <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-slate-900 to-transparent" />
+                <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32 bg-gradient-to-l from-slate-900 to-transparent" />
+                <div className="flex animate-[marqueeReverse_24s_linear_infinite] gap-4">
+                    {row2.map((name, i) => (
+                        <span
+                            key={`c2-${i}`}
+                            className="shrink-0 flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-300"
+                        >
+                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                            {name}
+                        </span>
+                    ))}
                 </div>
             </div>
         </section>
@@ -794,10 +685,102 @@ function About() {
 }
 
 /* ──────────────────────────────────────────────
+   Team Expertise & Qualifications
+   ────────────────────────────────────────────── */
+function TeamExpertise() {
+    const { lang } = useLang()
+
+    const certs = lang === 'zh'
+        ? [
+            { icon: Shield, title: 'AWS 认证', desc: 'Solutions Architect & DevOps Engineer' },
+            { icon: Monitor, title: '全栈技术认证', desc: 'React, Node.js, Python, Java 高级认证' },
+            { icon: Layers, title: 'PMP 项目管理', desc: '国际项目管理专业认证' },
+            { icon: Target, title: 'Scrum Master', desc: 'CSM 敏捷项目管理认证' },
+        ]
+        : [
+            { icon: Shield, title: 'AWS Certified', desc: 'Solutions Architect & DevOps Engineer' },
+            { icon: Monitor, title: 'Full-Stack Certified', desc: 'React, Node.js, Python, Java Advanced' },
+            { icon: Layers, title: 'PMP Certified', desc: 'Project Management Professional' },
+            { icon: Target, title: 'Scrum Master', desc: 'Certified ScrumMaster (CSM)' },
+        ]
+
+    const metrics = lang === 'zh'
+        ? [
+            { value: '8+', label: '平均从业年限' },
+            { value: '100%', label: '本科及以上学历' },
+            { value: '60%', label: '海外留学/工作经验' },
+            { value: '4.9/5', label: '客户满意度评分' },
+        ]
+        : [
+            { value: '8+', label: 'Avg Years Experience' },
+            { value: '100%', label: 'Bachelor\'s or Above' },
+            { value: '60%', label: 'International Experience' },
+            { value: '4.9/5', label: 'Client Satisfaction' },
+        ]
+
+    return (
+        <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-20 lg:py-28">
+            {/* Background decorations */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-primary-600/8 blur-3xl" />
+                <div className="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-violet-600/8 blur-3xl" />
+                {/* Grid pattern */}
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+            </div>
+
+            <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+                {/* Header */}
+                <div className="mx-auto max-w-2xl text-center mb-16">
+                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-primary-400">
+                        {lang === 'zh' ? '技术专家团队' : 'Expert Team'}
+                    </p>
+                    <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
+                        {lang === 'zh' ? '专业认证的技术团队' : 'Certified Professional Team'}
+                    </h2>
+                    <p className="mt-4 text-base text-slate-400">
+                        {lang === 'zh'
+                            ? '我们的团队成员均具备国际认可的技术认证与丰富的实战经验'
+                            : 'Our team members hold internationally recognized certifications with extensive hands-on experience'}
+                    </p>
+                </div>
+
+                {/* Certification Cards */}
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-16">
+                    {certs.map((c, i) => {
+                        const Icon = c.icon
+                        return (
+                            <div key={i} className="group rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:border-primary-500/30 hover:-translate-y-1">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-500/15 text-primary-400 transition-colors group-hover:bg-primary-500/25">
+                                    <Icon className="h-6 w-6" strokeWidth={1.8} />
+                                </div>
+                                <h3 className="mt-4 text-base font-semibold text-white">{c.title}</h3>
+                                <p className="mt-1.5 text-sm text-slate-400">{c.desc}</p>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* Team Metrics Bar */}
+                <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+                    <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+                        {metrics.map((m, i) => (
+                            <div key={i} className="text-center">
+                                <div className="text-3xl font-bold text-primary-400 lg:text-4xl">{m.value}</div>
+                                <div className="mt-2 text-sm font-medium text-slate-400">{m.label}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </section>
+    )
+}
+
+/* ──────────────────────────────────────────────
    Contact Form Section
    ────────────────────────────────────────────── */
 function ContactForm() {
-    const { t } = useLang()
+    const { t, lang } = useLang()
     const [form, setForm] = useState({ name: '', email: '', company: '', phone: '', message: '' })
     const [status, setStatus] = useState('idle') // idle | sending | success
 
@@ -1011,10 +994,10 @@ function ContactForm() {
                             <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-primary-600 to-primary-700 p-8 text-white shadow-lg shadow-primary-500/25">
                                 <Briefcase className="h-8 w-8 mb-4 opacity-80" />
                                 <h3 className="text-lg font-semibold">
-                                    {t.contactForm.label === 'Get In Touch' ? 'Let\'s Build Together' : '合作共赢'}
+                                    {lang === 'en' ? "Let's Build Together" : '合作共赢'}
                                 </h3>
                                 <p className="mt-2 text-sm leading-relaxed text-primary-100">
-                                    {t.contactForm.label === 'Get In Touch'
+                                    {lang === 'en'
                                         ? 'Join 50+ enterprise clients who trust us to deliver world-class technology solutions.'
                                         : '加入我们 50+ 家企业合作伙伴，共同打造一流的技术产品。'}
                                 </p>
@@ -1038,7 +1021,7 @@ function ContactForm() {
    Footer
    ────────────────────────────────────────────── */
 function Footer() {
-    const { t } = useLang()
+    const { t, lang } = useLang()
 
     return (
         <footer className="relative overflow-hidden bg-slate-900 text-white">
@@ -1063,76 +1046,179 @@ function Footer() {
                         </p>
                     </Reveal>
                     <Reveal delay={200}>
-                        <a
-                            href="#contact"
-                            className="mt-10 inline-flex items-center gap-2 rounded-xl bg-primary-600 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-primary-500/25 transition-all hover:bg-primary-500 hover:shadow-xl hover:shadow-primary-500/30 active:scale-[0.97]"
+                        <button
+                            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="mt-10 inline-flex items-center gap-2 rounded-xl bg-primary-600 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-primary-500/25 transition-all hover:bg-primary-500 hover:shadow-xl hover:shadow-primary-500/30 active:scale-[0.97] cursor-pointer"
                         >
                             <Mail className="h-5 w-5" />
                             {t.footer.ctaBtn}
-                        </a>
+                        </button>
                     </Reveal>
                 </div>
             </div>
-
-            {/* Bottom Info */}
-            <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-                <div className="grid gap-10 md:grid-cols-3">
-                    {/* Brand */}
-                    <div>
+            {/* Rich Footer */}
+            <div className="mx-auto max-w-7xl px-6 pt-16 pb-8 lg:px-8">
+                {/* 4-column grid */}
+                <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+                    {/* Col 1 — Brand */}
+                    <div className="sm:col-span-2 lg:col-span-1">
                         <div className="flex items-center gap-2.5">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-                                <Layers className="h-4 w-4 text-white" strokeWidth={2.5} />
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 shadow-md shadow-primary-500/25">
+                                <Layers className="h-5 w-5 text-white" strokeWidth={2.5} />
                             </div>
-                            <span className="text-base font-bold tracking-tight">
+                            <span className="text-lg font-bold tracking-tight text-white">
                                 Qixiang <span className="font-medium text-slate-400">Consulting</span>
                             </span>
                         </div>
                         <p className="mt-4 text-sm leading-relaxed text-slate-400">
                             {t.footer.brand}
                         </p>
+                        {/* Social-like icons */}
+                        <div className="mt-6 flex gap-3">
+                            {[Mail, Globe, MessageSquare, Briefcase].map((Icon, i) => (
+                                <div key={i} className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white hover:border-primary-500/30 cursor-pointer">
+                                    <Icon className="h-4 w-4" />
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Contact */}
+                    {/* Col 2 — Services */}
+                    <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">
+                            {lang === 'zh' ? '核心服务' : 'Services'}
+                        </h3>
+                        <ul className="mt-4 space-y-3 text-sm">
+                            {[
+                                { label: t.services.card1Title, id: 'software' },
+                                { label: t.services.card2Title, id: 'trading' },
+                                { label: t.services.card3Title, id: 'consulting' },
+                            ].map((s) => (
+                                <li key={s.id}>
+                                    <Link to={`/service/${s.id}`} className="text-slate-400 transition-colors hover:text-white">
+                                        {s.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <h3 className="mt-8 text-sm font-semibold uppercase tracking-widest text-slate-300">
+                            {t.footer.navTitle}
+                        </h3>
+                        <ul className="mt-4 space-y-3 text-sm">
+                            {[
+                                { label: t.nav.home, id: 'hero' },
+                                { label: t.nav.services, id: 'services' },
+                                { label: t.nav.about, id: 'about' },
+                                { label: t.nav.contact, id: 'contact' },
+                            ].map((l) => (
+                                <li key={l.id}>
+                                    <button onClick={() => document.getElementById(l.id)?.scrollIntoView({ behavior: 'smooth' })} className="text-slate-400 transition-colors hover:text-white cursor-pointer">
+                                        {l.label}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Col 3 — Tech Stack */}
+                    <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">
+                            {lang === 'zh' ? '技术能力' : 'Tech Stack'}
+                        </h3>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {['React', 'Node.js', 'TypeScript', 'Python', 'Java', 'AWS', 'Docker', 'K8s', 'PostgreSQL', 'Redis'].map((t) => (
+                                <span key={t} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-400">
+                                    {t}
+                                </span>
+                            ))}
+                        </div>
+
+                        <h3 className="mt-8 text-sm font-semibold uppercase tracking-widest text-slate-300">
+                            {lang === 'zh' ? '安全认证' : 'Certifications'}
+                        </h3>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {['ISO 27001', 'GDPR', 'SOC 2', 'PCI DSS'].map((c) => (
+                                <span key={c} className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+                                    <Shield className="h-3 w-3" />
+                                    {c}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Col 4 — Contact */}
                     <div>
                         <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">
                             {t.footer.contactTitle}
                         </h3>
-                        <ul className="mt-4 space-y-3 text-sm text-slate-400">
+                        <ul className="mt-4 space-y-4 text-sm text-slate-400">
                             <li className="flex items-start gap-3">
                                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
                                 <a href="mailto:contact@qixiang.com" className="hover:text-white transition-colors">contact@qixiang.com</a>
                             </li>
                             <li className="flex items-start gap-3">
+                                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
+                                <span>+86 6590-6578</span>
+                            </li>
+                            <li className="flex items-start gap-3">
                                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
                                 <span>{t.contactForm.address}</span>
                             </li>
+                            <li className="flex items-start gap-3">
+                                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
+                                <span>{lang === 'zh' ? '工作时间：周一至周五 9:00-18:00' : 'Mon-Fri 9:00 AM - 6:00 PM'}</span>
+                            </li>
                         </ul>
-                    </div>
 
-                    {/* Quick Links */}
-                    <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-300">
-                            {t.footer.navTitle}
-                        </h3>
-                        <ul className="mt-4 space-y-3 text-sm">
-                            {[
-                                { label: t.nav.home, href: '#hero' },
-                                { label: t.nav.services, href: '#services' },
-                                { label: t.nav.about, href: '#about' },
-                                { label: t.nav.contact, href: '#contact' },
-                            ].map((l) => (
-                                <li key={l.href}>
-                                    <a href={l.href} className="text-slate-400 transition-colors hover:text-white">
-                                        {l.label}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
+                        {/* Mini CTA */}
+                        <button
+                            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary-500 cursor-pointer"
+                        >
+                            <Send className="h-4 w-4" />
+                            {t.nav.cta}
+                        </button>
                     </div>
                 </div>
 
-                <div className="mt-12 border-t border-white/10 pt-8 text-center text-xs text-slate-500">
-                    {t.footer.copyright}
+                {/* Trust strip */}
+                <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 rounded-2xl border border-white/10 bg-white/5 p-6">
+                    {[
+                        { value: '50+', label: lang === 'zh' ? '企业客户' : 'Enterprise Clients', icon: Building2 },
+                        { value: '200+', label: lang === 'zh' ? '成功交付' : 'Projects Delivered', icon: CheckCircle2 },
+                        { value: '99.9%', label: lang === 'zh' ? '系统可用性' : 'System Uptime', icon: Zap },
+                        { value: '24/7', label: lang === 'zh' ? '技术支持' : 'Tech Support', icon: Clock },
+                    ].map((s) => {
+                        const Icon = s.icon
+                        return (
+                            <div key={s.label} className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-500/15 text-primary-400">
+                                    <Icon className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <div className="text-lg font-bold text-white">{s.value}</div>
+                                    <div className="text-xs text-slate-500">{s.label}</div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* Bottom bar */}
+                <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
+                    <p className="text-xs text-slate-500">
+                        {t.footer.copyright}
+                    </p>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-white transition-colors cursor-pointer"
+                        >
+                            <ArrowRight className="h-3 w-3 -rotate-90" />
+                            {lang === 'zh' ? '回到顶部' : 'Back to Top'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </footer>
@@ -1140,21 +1226,38 @@ function Footer() {
 }
 
 /* ──────────────────────────────────────────────
-   App
+   Home Page — all existing sections
+   ────────────────────────────────────────────── */
+function HomePage() {
+    return (
+        <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
+            <Navbar />
+            <Hero />
+            <TechMarquee />
+            <Services />
+            <GlobalBanner />
+            <WhyUs />
+            <ComplianceBanner />
+            <About />
+            <TeamExpertise />
+            <ContactForm />
+            <Footer />
+        </div>
+    )
+}
+
+/* ──────────────────────────────────────────────
+   App — Routing
    ────────────────────────────────────────────── */
 export default function App() {
     return (
         <LangProvider>
-            <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
-                <Navbar />
-                <Hero />
-                <TechMarquee />
-                <Services />
-                <WhyUs />
-                <About />
-                <ContactForm />
-                <Footer />
-            </div>
+            <HashRouter>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/service/:serviceKey" element={<ServiceDetail />} />
+                </Routes>
+            </HashRouter>
         </LangProvider>
     )
 }
